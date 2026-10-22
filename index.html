@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect - Social Media</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            color: #222;
+        }
+
+        header {
+            background: #1877f2;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 12px;
+        }
+
+        .card {
+            background: white;
+            padding: 16px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #00000010;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background: #1877f2;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 7px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 15px;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .post {
+            background: white;
+            padding: 16px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .post-name {
+            font-weight: bold;
+            color: #1877f2;
+        }
+
+        .post-time {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .post img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .like {
+            background: #e7f0ff;
+            color: #1877f2;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>🌐 Connect</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Welcome to Connect! 👋</h2>
+        <p>Share your thoughts with the world.</p>
+
+        <label for="username">Your name</label>
+        <input id="username" type="text" placeholder="Enter your name">
+
+        <label for="message">What's on your mind?</label>
+        <textarea id="message" placeholder="Write something..."></textarea>
+
+        <label for="photo">Add a picture (optional)</label>
+        <input id="photo" type="file" accept="image/*">
+
+        <br>
+        <button onclick="createPost()">➕ Create Post</button>
+    </div>
+
+    <h2>📰 Latest Posts</h2>
+    <div id="posts"></div>
+
+</div>
+
+<footer>Connect © 2026 | Made with ❤️</footer>
+
+<script>
+    const postsArea = document.getElementById("posts");
+
+    let posts = [];
+
+    function escapeHTML(text) {
+        return String(text).replace(/[&<>"']/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            }[char];
+        });
+    }
+
+    function renderPosts() {
+        postsArea.innerHTML = "";
+
+        if (posts.length === 0) {
+            postsArea.innerHTML =
+                '<div class="card">No posts yet. Be the first to post! 🎉</div>';
+            return;
+        }
+
+        posts.forEach(function (post) {
+            const article = document.createElement("article");
+            article.className = "post";
+
+            const name = document.createElement("div");
+            name.className = "post-name";
+            name.textContent = "👤 " + post.name;
+
+            const time = document.createElement("div");
+            time.className = "post-time";
+            time.textContent = post.time;
+
+            const message = document.createElement("p");
+            message.textContent = post.message;
+
+            article.append(name, time, message);
+
+            if (post.photo) {
+                const img = document.createElement("img");
+                img.src = post.photo;
+                img.alt = "Post picture";
+                article.appendChild(img);
+            }
+
+            const like = document.createElement("button");
+            like.className = "like";
+            like.textContent = "❤️ Like (" + post.likes + ")";
+            like.onclick = function () {
+                post.likes++;
+                renderPosts();
+            };
+
+            article.appendChild(like);
+            postsArea.appendChild(article);
+        });
+    }
+
+    function createPost() {
+        const nameInput = document.getElementById("username");
+        const messageInput = document.getElementById("message");
+        const photoInput = document.getElementById("photo");
+
+        const name = nameInput.value.trim();
+        const message = messageInput.value.trim();
+        const file = photoInput.files[0];
+
+        if (!name || !message) {
+            alert("Please enter your name and a message.");
+            return;
+        }
+
+        if (file && file.size > 2 * 1024 * 1024) {
+            alert("Please choose a picture smaller than 2 MB.");
+            return;
+        }
+
+        function savePost(photo) {
+            posts.unshift({
+                name: name,
+                message: message,
+                photo: photo,
+                likes: 0,
+                time: new Date().toLocaleString()
+            });
+
+            renderPosts();
+            messageInput.value = "";
+            photoInput.value = "";
+        }
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function () {
+                savePost(reader.result);
+            };
+
+            reader.readAsDataURL(file);
+        } else {
+            savePost("");
+        }
+    }
+
+    renderPosts();
+</script>
+
+</body>
+</html>
